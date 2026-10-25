@@ -1,0 +1,27 @@
+---
+- name: SW3 - intern trunk (ikke EtherChannel ennå)
+  hosts: SW3
+  gather_facts: false
+  tasks:
+    - ansible.builtin.import_tasks: _validate.yml
+    - name: Opprett VLAN 10,20,99
+      cisco.ios.ios_config:
+        parents: 'vlan {{ item.id }}'
+        lines:
+          - 'name {{ item.name }}'
+      loop:
+        - { id: 10, name: STUD1 }
+        - { id: 20, name: STUD2 }
+        - { id: 99, name: MANAGEMENT }
+    - name: Trunk Gi1/0/1 mot SW2
+      cisco.ios.ios_config:
+        parents: 'interface {{ ports.sw3_sw2 }}'
+        lines:
+          - description TO_SW2
+          - switchport mode trunk
+          - 'switchport trunk allowed vlan {{ vlan.stud1 }},{{ vlan.stud2 }},{{ vlan.mgmt }}'
+          - no shutdown
+    - name: Sett management default gateway
+      cisco.ios.ios_config:
+        lines:
+          - 'ip default-gateway {{ ip.sw_down_gateway }}'

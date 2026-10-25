@@ -1,0 +1,35 @@
+---
+- name: Verifiser nåbar enhet uten endringer
+  hosts: all
+  gather_facts: false
+  tasks:
+    - ansible.builtin.import_tasks: _validate.yml
+    - name: Grunnleggende status
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief
+      register: status
+    - ansible.builtin.debug:
+        var: status.stdout_lines
+- name: Kontroller HSRP og DHCP
+  hosts: routers
+  gather_facts: false
+  tasks:
+    - cisco.ios.ios_command:
+        commands:
+          - show standby brief
+          - show ip dhcp binding
+      register: router_status
+    - ansible.builtin.debug:
+        var: router_status.stdout_lines
+- name: Kontroller trunk og LACP på SW3
+  hosts: SW3
+  gather_facts: false
+  tasks:
+    - cisco.ios.ios_command:
+        commands:
+          - show interfaces trunk
+          - show etherchannel summary
+      register: switch_status
+    - ansible.builtin.debug:
+        var: switch_status.stdout_lines

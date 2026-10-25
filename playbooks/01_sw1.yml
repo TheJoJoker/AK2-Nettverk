@@ -1,0 +1,28 @@
+---
+- name: SW1 - kun porter mot R1 og R2 (SSH-port beholdes)
+  hosts: SW1
+  gather_facts: false
+  tasks:
+    - ansible.builtin.import_tasks: _validate.yml
+    - name: Sikre at management VLAN 99 finnes
+      cisco.ios.ios_config:
+        parents: 'vlan {{ vlan.mgmt }}'
+        lines:
+          - name MANAGEMENT
+    - name: Gi1/0/2 access management mot R1
+      cisco.ios.ios_config:
+        parents: 'interface {{ ports.sw1_r1 }}'
+        lines:
+          - description TO_R1_UPLINK
+          - switchport mode access
+          - 'switchport access vlan {{ vlan.mgmt }}'
+          - no shutdown
+    - name: Gi1/0/3 access management mot R2
+      cisco.ios.ios_config:
+        parents: 'interface {{ ports.sw1_r2 }}'
+        lines:
+          - description TO_R2_UPLINK
+          - switchport mode access
+          - 'switchport access vlan {{ vlan.mgmt }}'
+          - no shutdown
+    # SW1 Gi1/0/1 og SVI ble konfigurert ved SSH-bootstrap; bevares.

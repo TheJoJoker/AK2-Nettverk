@@ -1,0 +1,17 @@
+---
+- name: Lesekontroll av tilkobling og portvariabler
+  hosts: all
+  gather_facts: false
+  tasks:
+    - ansible.builtin.import_tasks: _validate.yml
+    - name: Vis enhet og IP
+      ansible.builtin.debug:
+        msg: '{{ inventory_hostname }} via {{ ansible_host }}; SW1-R1-port={{ ports.sw1_r1 }}'
+    - name: Vis IOS og grensesnitt (ingen endringer)
+      cisco.ios.ios_command:
+        commands:
+          - show version
+          - show ip interface brief
+      register: facts_output
+    - ansible.builtin.debug:
+        var: facts_output.stdout_lines

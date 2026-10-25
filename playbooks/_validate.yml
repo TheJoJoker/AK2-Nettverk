@@ -1,0 +1,20 @@
+---
+- name: Kontroller sentrale variabler og sikker portmapping
+  ansible.builtin.assert:
+    that:
+      - ports is defined
+      - vlan is defined
+      - ip is defined
+      - ports.sw1_pc is defined
+      - ports.sw1_r1 is defined
+      - ports.sw1_r2 is defined
+      - ports.r1_down is defined
+      - ports.r2_down is defined
+      - ports.sw2_r1 is defined
+      - ports.sw2_r2 is defined
+      - ports.sw2_sw3 is defined
+      - ports.sw3_sw2 is defined
+      - vlan.stud1 | int == 10
+      - vlan.stud2 | int == 20
+      - vlan.mgmt | int == 99
+    fail_msg: 'Variabler mangler. Kontroller inventory/group_vars/all.yml og -i inventory/hosts.yml.'

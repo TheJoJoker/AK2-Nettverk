@@ -1,0 +1,34 @@
+---
+- name: SW3 - valgte PC-porter
+  hosts: SW3
+  gather_facts: false
+  tasks:
+    - ansible.builtin.import_tasks: _validate.yml
+    - name: Krev eksplisitt valg av PC-porter
+      ansible.builtin.assert:
+        that:
+          - pc_ports.enabled | bool
+          - ports.sw3_pc10 | length > 0
+          - ports.sw3_pc20 | length > 0
+          - ports.sw3_pc10 != ports.sw3_pc20
+          - ports.sw3_pc10 not in [ports.sw3_sw2, ports.sw3_po_member1, ports.sw3_po_member2]
+          - ports.sw3_pc20 not in [ports.sw3_sw2, ports.sw3_po_member1, ports.sw3_po_member2]
+        fail_msg: 'Sett to ledige PC-porter og pc_ports.enabled=true i inventory/group_vars/all.yml.'
+    - name: Access-port VLAN 10
+      cisco.ios.ios_config:
+        parents: 'interface {{ ports.sw3_pc10 }}'
+        lines:
+          - description STUD1_PC
+          - switchport mode access
+          - 'switchport access vlan {{ vlan.stud1 }}'
+          - spanning-tree portfast
+          - no shutdown
+    - name: Access-port VLAN 20
+      cisco.ios.ios_config:
+        parents: 'interface {{ ports.sw3_pc20 }}'
+        lines:
+          - description STUD2_PC
+          - switchport mode access
+          - 'switchport access vlan {{ vlan.stud2 }}'
+          - spanning-tree portfast
+          - no shutdown

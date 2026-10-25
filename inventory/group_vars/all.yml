@@ -1,0 +1,45 @@
+# ENESTE kilde til portkart/IP/VLAN; alle playbooks får disse via inventory.
+ports:
+  sw1_pc: GigabitEthernet1/0/1
+  sw1_r1: GigabitEthernet1/0/2
+  sw1_r2: GigabitEthernet1/0/3
+  r1_up: GigabitEthernet0/0/0
+  r1_down: GigabitEthernet0/0/1
+  r2_up: GigabitEthernet0/0/0
+  r2_down: GigabitEthernet0/0/1
+  sw2_r1: GigabitEthernet1/0/1
+  sw2_r2: GigabitEthernet1/0/2
+  sw2_sw3: GigabitEthernet1/0/3
+  sw3_sw2: GigabitEthernet1/0/1
+  sw3_po_member1: GigabitEthernet1/0/23
+  sw3_po_member2: GigabitEthernet1/0/24
+  sw3_pc10: GigabitEthernet1/0/2
+  sw3_pc20: GigabitEthernet1/0/3
+
+vlan:
+  stud1: 10
+  stud2: 20
+  mgmt: 99
+
+ip:
+  mask: 255.255.255.0
+  sw1: 192.168.99.11
+  r1_up: 192.168.99.2
+  r2_up: 192.168.99.3
+  r1_down_mgmt: 192.168.98.2
+  r2_down_mgmt: 192.168.98.3
+  sw2: 192.168.98.12
+  sw3: 192.168.98.13
+  r1_vlan10: 192.168.10.2
+  r2_vlan10: 192.168.10.3
+  hsrp_vlan10: 192.168.10.1
+  vlan10_network: 192.168.10.0
+  vlan10_mask: 255.255.255.0
+  sw_down_gateway: 192.168.98.2
+
+etherchannel:
+  channel_id: 1
+  enabled: true  
+
+pc_ports:
+  enabled: true 

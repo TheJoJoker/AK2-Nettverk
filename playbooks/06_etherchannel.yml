@@ -1,0 +1,32 @@
+---
+- name: SW3 - EtherChannel mot STUD2, kun VLAN10 og 20
+  hosts: SW3
+  gather_facts: false
+  tasks:
+    - ansible.builtin.import_tasks: _validate.yml
+    - name: Krev bekreftelse fra STUD2
+      ansible.builtin.assert:
+        that:
+          - etherchannel.enabled | bool
+          - ports.sw3_po_member1 != ports.sw3_po_member2
+        fail_msg: 'Bekreft STUD2-side og sett etherchannel.enabled=true før aktivering.'
+    - name: Konfigurer LACP medlemmer
+      cisco.ios.ios_config:
+        parents: 'interface {{ item }}'
+        lines:
+          - description TO_STUD2_LACP
+          - switchport mode trunk
+          - 'switchport trunk allowed vlan {{ vlan.stud1 }},{{ vlan.stud2 }}'
+          - 'channel-group {{ etherchannel.channel_id }} mode active'
+          - no shutdown
+      loop:
+        - '{{ ports.sw3_po_member1 }}'
+        - '{{ ports.sw3_po_member2 }}'
+    - name: Konfigurer logisk Port-channel
+      cisco.ios.ios_config:
+        parents: 'interface Port-channel{{ etherchannel.channel_id }}'
+        lines:
+          - description TO_STUD2_ONLY_VLAN10_20
+          - switchport mode trunk
+          - 'switchport trunk allowed vlan {{ vlan.stud1 }},{{ vlan.stud2 }}'
+          - no shutdown

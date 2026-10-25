@@ -1,0 +1,50 @@
+---
+- name: R1 og R2 - nedre trunk, VLAN 10 HSRP og nedre management
+  hosts: routers
+  gather_facts: false
+  serial: 1
+  vars:
+    downstream: '{{ ports.r1_down if inventory_hostname == "R1" else ports.r2_down }}'
+    vlan10_address: '{{ ip.r1_vlan10 if inventory_hostname == "R1" else ip.r2_vlan10 }}'
+    mgmt_address: '{{ ip.r1_down_mgmt if inventory_hostname == "R1" else ip.r2_down_mgmt }}'
+    hsrp_priority: '{{ 110 if inventory_hostname == "R1" else 100 }}'
+  tasks:
+    - ansible.builtin.import_tasks: _validate.yml
+    - name: Aktiver fysisk port ned mot SW2
+      cisco.ios.ios_config:
+        parents: 'interface {{ downstream }}'
+        lines:
+          - description TO_SW2
+          - no ip address
+          - no shutdown
+    - name: VLAN 99 management subinterface
+      cisco.ios.ios_config:
+        parents: 'interface {{ downstream }}.{{ vlan.mgmt }}'
+        lines:
+          - 'encapsulation dot1Q {{ vlan.mgmt }}'
+          - 'ip address {{ mgmt_address }} {{ ip.mask }}'
+          - no shutdown
+    - name: VLAN 10 og HSRP
+      cisco.ios.ios_config:
+        parents: 'interface {{ downstream }}.{{ vlan.stud1 }}'
+        lines:
+          - 'encapsulation dot1Q {{ vlan.stud1 }}'
+          - 'ip address {{ vlan10_address }} {{ ip.vlan10_mask }}'
+          - standby version 2
+          - 'standby 10 ip {{ ip.hsrp_vlan10 }}'
+          - 'standby 10 priority {{ hsrp_priority }}'
+          - standby 10 preempt
+          - no shutdown
+    - name: DHCP ekskluderte adresser (bare R1)
+      cisco.ios.ios_config:
+        lines:
+          - ip dhcp excluded-address 192.168.10.1 192.168.10.49
+          - ip dhcp excluded-address 192.168.10.200 192.168.10.254
+      when: inventory_hostname == 'R1'
+    - name: DHCP VLAN 10 (bare R1)
+      cisco.ios.ios_config:
+        parents: ip dhcp pool STUD1_VLAN10
+        lines:
+          - 'network {{ ip.vlan10_network }} {{ ip.vlan10_mask }}'
+          - 'default-router {{ ip.hsrp_vlan10 }}'
+      when: inventory_hostname == 'R1'
